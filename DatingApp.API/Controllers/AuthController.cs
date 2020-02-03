@@ -6,42 +6,44 @@ using System.Threading.Tasks;
 using DatingApp.API.Data;
 using DatingApp.API.DTOs;
 using DatingApp.API.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace DatingApp.API.Controllers
-{
+{   
+    
     [Route("api/[controller]")]
     [ApiController]
     public class AuthController : ControllerBase
     {
         private readonly IConfiguration _config;
+        private readonly IAuthRepository _repo;
         public AuthController(IAuthRepository repo, IConfiguration config)
         {
             _config = config;
             _repo = repo;
         }
 
-        private readonly IAuthRepository _repo;
-
+        [AllowAnonymous]
         [HttpPost("register")]
         public async Task<IActionResult> Register(UserForRegisterDto userForRegisterDto)
         {
-            userForRegisterDto.username = userForRegisterDto.username.ToLower();
+            userForRegisterDto.Username = userForRegisterDto.Username.ToLower();
 
-            if (await _repo.UserExists(userForRegisterDto.username))
+            if (await _repo.UserExists(userForRegisterDto.Username))
             {
                 return BadRequest("Username already exists");
             }
 
-            var userToCreate = new User { Username = userForRegisterDto.username };
+            var userToCreate = new User { Username = userForRegisterDto.Username };
 
-            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.password);
+            var createdUser = await _repo.Register(userToCreate, userForRegisterDto.Password);
 
             return StatusCode(201); //missing createdAtRoute
         }
-
+        [AllowAnonymous]
         [HttpPost("login")]
         public async Task<IActionResult> Login(UserForLoginDto userForLoginDto)
         {
